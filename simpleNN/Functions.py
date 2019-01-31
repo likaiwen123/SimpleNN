@@ -12,7 +12,7 @@ class Function:
 
 class Sigmoid(Function):
     def __init__(self):
-        super(Sigmoid).__init__()
+        super().__init__()
         self.func = util.sigmoid
         self.diff = util.sigmoid_diff
         self.name = 'Sigmoid'
@@ -20,7 +20,7 @@ class Sigmoid(Function):
 
 class Tanh(Function):
     def __init__(self):
-        super(Tanh).__init__()
+        super().__init__()
         self.func = util.tanh
         self.diff = util.tanh_diff
         self.name = 'Tanh'
@@ -28,7 +28,14 @@ class Tanh(Function):
 
 class ReLU(Function):
     def __init__(self):
-        super(ReLU).__init__()
+        super().__init__()
         self.func = util.relu
         self.diff = util.relu_diff()
         self.name = 'ReLU'
+
+
+class CrossEntropy(Function):
+    def __init__(self):
+        super().__init__()
+        self.func = util.cross_entropy
+        self.diff = util.cross_entropy_diff
