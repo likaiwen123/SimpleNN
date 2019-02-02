@@ -77,25 +77,35 @@ class FCLayer(Layer):
 
         self.shape = (out_size, inp_size)
         self.kernel = np.random.randn(out_size, inp_size)
+        self.bias = np.random.randn(out_size, 1)
         self.__local_grad_coeff = np.zeros(self.shape)
         self.__local_grad_inp = np.zeros(self.shape)
+        self.__local_grad_bias = np.zeros((self.out_shape[0], 1))
         self.grad = np.zeros(self.shape)
+        self.grad_bias = np.zeros((self.out_shape[0], 1))
 
         self.type = "FC"
 
     def calc_local_grad(self):
         diff = self.activation.diff(self.out)
+        self.__local_grad_bias = diff
         self.__local_grad_coeff = np.outer(diff, self.inp)
-        self.__local_grad_inp = np.diag(diff).dot(self.kernel)
+        self.__local_grad_inp = np.diag(diff.reshape(-1)).dot(self.kernel)
 
     def linear(self):
         self.inp = np.reshape(self.inp, (-1, 1))
-        res = np.zeros(self.out_shape)
-        for index in range(self.out_shape[0]):
-            res[index] = np.sum(np.multiply(self.inp, self.kernel[:, index]))
-        return res
+        return self.kernel.dot(self.inp) + self.bias
 
     def back(self, vec):
         remote_grad = np.diag(vec)
         self.grad += remote_grad.dot(self.__local_grad_coeff)
+        self.grad_bias += remote_grad.dot(self.__local_grad_bias)
         return vec.dot(self.__local_grad_inp)
+
+    def update(self):
+        super().update()
+        self.bias += -self.learning_rate * (self.grad_bias + 0.002 * self.bias)
+
+    def clear_grad(self):
+        self.grad *= 0.0
+        self.bias *= 0.0
