@@ -30,7 +30,7 @@ class ReLU(Function):
     def __init__(self):
         super().__init__()
         self.func = util.relu
-        self.diff = util.relu_diff()
+        self.diff = util.relu_diff
         self.name = 'ReLU'
 
 
@@ -39,3 +39,12 @@ class CrossEntropy(Function):
         super().__init__()
         self.func = util.cross_entropy
         self.diff = util.cross_entropy_diff
+        self.name = "Cross_Entropy"
+
+
+class Self(Function):
+    def __init__(self):
+        super().__init__()
+        self.func = util.self
+        self.diff = util.self_diff
+        self.name = "self"

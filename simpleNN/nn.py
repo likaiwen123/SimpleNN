@@ -2,6 +2,7 @@
 
 import simpleNN.Layers as Layers
 import numpy as np
+import simpleNN.utils
 
 
 class NeuralNetwork:
@@ -61,58 +62,72 @@ class NeuralNetwork:
     def train(self, training_set, labels):
         correct = 0
         total_loss = 0.0
-        for image in training_set:
+        for i in range(len(training_set)):
+            image = training_set[i, :]
+
+            self.clear_grad()
+
             output = image
-            for i in range(self.number):
-                output = self.layers[i].forward(output, grad=True)
+            for l in range(self.number):
+                output = self.layers[l].forward(output, grad=True)
 
             # prediction
+            # output = simpleNN.utils.relu(output)
             output /= np.sum(output)
             predict = self.predict_fn(output)
-            label = labels[i]
+            label = self.predict_fn(labels[i, :])
             if predict == label:
                 correct += 1
 
             # loss calculation
-            fact = np.zeros(self.shape[-1])
+            fact = labels[i, :]
+            output = output.reshape(-1)
             loss = self.loss_fn.func(fact, output)
             diff = self.loss_fn.diff(fact, output)
             total_loss += loss
 
             # gradient decent and clear gradients
             prefix = diff.T
-            for i in range(self.number):
-                index = self.number - 1 - i
+            for j in range(self.number):
+                index = self.number - 1 - j
                 prefix = self.layers[index].backward(prefix)
                 self.layers[index].clear_grad()
 
         correct_rate = correct / len(training_set)
         average_loss = total_loss / len(training_set)
 
-        print("Average loss is %10.6lf, correction rate %.2lf%%\n", (average_loss, correct_rate * 100))
+        print("Average loss is %10.6lf, correction rate %.2lf%%.\n" % (average_loss, correct_rate * 100))
 
     def test(self, testing_set, labels):
         correct = 0
         total_loss = 0.0
         predicts = np.zeros(len(testing_set))
-        for image in testing_set:
+        for i in range(len(testing_set)):
+            image = testing_set[i, :]
+
             output = image
-            for i in range(self.number):
-                output = self.layers[i].forward(output, grad=False)
+            for l in range(self.number):
+                output = self.layers[l].forward(output, grad=False)
 
-                # prediction
-                output /= np.sum(output)
-                predicts[i] = self.predict_fn(output)
-                label = labels[i]
-                if predicts[i] == label:
-                    correct += 1
+            # prediction
+            # output = simpleNN.utils.relu(output) + 1e-10
+            output /= np.sum(output)
+            predicts[i] = self.predict_fn(output)
+            label = self.predict_fn(labels[i, :])
+            if predicts[i] == label:
+                correct += 1
 
-                # loss calculation
-                fact = np.zeros(self.layers[-1])
-                loss = self.loss_fn(fact, output)
-                total_loss += loss
+            # loss calculation
+            fact = labels[i, :]
+            output = output.reshape(-1)
+            loss = self.loss_fn.func(fact, output)
+            total_loss += loss
 
         correct_rate = correct / len(testing_set)
         average_loss = total_loss / len(testing_set)
 
-        print("Average loss is %10.6lf, correction rate %.2lf%%\n", (average_loss, correct_rate * 100))
+        print("Average loss is %10.6lf, correction rate %.2lf%%.\n" % (average_loss, correct_rate * 100))
+
+    def clear_grad(self):
+        for i in range(self.number):
+            self.layers[i].clear_grad()
